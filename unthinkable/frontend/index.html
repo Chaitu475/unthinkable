@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Task Planner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Smart Task Planner</h1>
+        <p>Break your goals into actionable tasks with Gemini AI.</p>
+        <div class="input-section">
+            <textarea id="goal-input" placeholder="e.g., Launch a product in 2 weeks"></textarea>
+            <button id="plan-button">Generate Plan</button>
+        </div>
+        
+        <div id="loading-spinner" class="hidden">
+            <div class="spinner"></div>
+            <p>AI is planning your success...</p>
+        </div>
+
+        <div id="plan-output" class="hidden">
+            <h2>Generated Task Plan</h2>
+            <div id="task-list">
+                </div>
+        </div>
+        
+        <div id="error-message" class="hidden">
+            </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
