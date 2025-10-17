@@ -1,7 +1,7 @@
 import os
 import json
-from flask import Flask, request, jsonify
-from flask_cors import CORS  # <-- NEW IMPORT
+from flask import Flask, request, jsonify, send_file # <-- Added send_file
+from flask_cors import CORS
 from dotenv import load_dotenv
 from google import genai
 
@@ -9,7 +9,7 @@ from google import genai
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)  # <-- CRITICAL FIX: Allows frontend JS to call this API
+CORS(app)  # Allows frontend JS to call this API
 
 # --- Gemini API Configuration ---
 # Ensure GOOGLE_API_KEY is set in your .env file
@@ -51,6 +51,34 @@ TASK_SCHEMA = {
     }
 }
 
+# NEW ROUTE: Serve the frontend index.html file
+@app.route('/')
+def serve_frontend():
+    # Construct the path to the index.html file
+    # Assumes the script is run from the backend/ directory or the project root.
+    # Adjust the path as necessary based on where you run app.py
+    frontend_path = os.path.join(os.getcwd(), '..', 'frontend', 'index.html')
+    if not os.path.exists(frontend_path):
+        # Fallback if running from a different directory
+        frontend_path = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'index.html')
+
+    try:
+        return send_file(frontend_path)
+    except Exception as e:
+        return f"Error serving frontend: {str(e)}. Check that frontend/index.html exists and that you are running 'python app.py' from the 'backend' folder.", 500
+
+# NEW ROUTE: Serve static files (CSS, JS)
+@app.route('/<filename>')
+def serve_static(filename):
+    if filename.endswith(('.css', '.js')):
+        static_path = os.path.join(os.path.dirname(__file__), '..', 'frontend', filename)
+        try:
+            return send_file(static_path)
+        except Exception:
+            return "File Not Found", 404
+    return "File Not Found", 404
+
+
 @app.route('/api/generate-plan', methods=['POST'])
 def generate_plan():
     if not client:
@@ -59,7 +87,7 @@ def generate_plan():
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"error": "Invalid JSON payload."}), 400
-        
+
     user_goal = data.get('goal')
 
     if not user_goal:
@@ -68,19 +96,31 @@ def generate_plan():
     full_prompt = PROMPT_TEMPLATE.format(goal=user_goal)
 
     try:
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=full_prompt,
-            config=genai.types.GenerateContentConfig(
-                system_instruction=SYSTEM_INSTRUCTION,
-                response_mime_type="application/json",
-                response_schema=TASK_SCHEMA
-            )
-        )
+        # Retry logic for transient API errors (using exponential backoff concept)
+        MAX_RETRIES = 3
+        for attempt in range(MAX_RETRIES):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=full_prompt,
+                    config=genai.types.GenerateContentConfig(
+                        system_instruction=SYSTEM_INSTRUCTION,
+                        response_mime_type="application/json",
+                        response_schema=TASK_SCHEMA
+                    )
+                )
 
-        # Parse the JSON response text
-        task_plan = json.loads(response.text)
-        return jsonify(task_plan)
+                # Parse the JSON response text
+                task_plan = json.loads(response.text)
+                return jsonify(task_plan)
+
+            except Exception as inner_e:
+                if attempt < MAX_RETRIES - 1:
+                    print(f"Transient error on attempt {attempt + 1}: {inner_e}. Retrying in {2**(attempt+1)} seconds...")
+                    import time
+                    time.sleep(2**(attempt+1))
+                else:
+                    raise inner_e # Re-raise final exception
 
     except Exception as e:
         print(f"Error during plan generation: {e}")
