@@ -126,6 +126,6 @@ def generate_plan():
         print(f"Error during plan generation: {e}")
         return jsonify({"error": f"Failed to generate plan. Detail: {str(e)}"}), 500
 
-if __name__ == '__main__':
-    # Running on a specific port for development
-    app.run(debug=True, port=5000)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
