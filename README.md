@@ -77,8 +77,7 @@ pip install -r requirements.txt
 You must provide your Gemini API key for the application to function. Create a file named .env in the root directory and add the key in the following format:
 
 # .env file
-GOOGLE_API_KEY="AIzaSyBZWhw1E1fUMfinN8yIFFPCb6AL95B1vak"
-
+Used GOOGLE API KEY.
 
 ▶️ Running the Application
 
