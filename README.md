@@ -55,14 +55,14 @@ The project uses the following directory and file structure:
 
 smart-task-planner/
 ├── backend/
-│   ├── app.py            <-- Flask server and AI logic
+│   ├── app.py            
 │   └── __init__.py
 ├── frontend/
-│   ├── index.html        <-- Main user interface
-│   ├── style.css         <-- Styling and animations
-│   └── script.js         <-- Frontend logic and API calls
-├── .env                  <-- 🔑 API Key location
-└── requirements.txt      <-- Python dependencies
+│   ├── index.html        
+│   ├── style.css         
+│   └── script.js         
+├── .env                  
+└── requirements.txt      
 
 
 2. Install Dependencies
@@ -77,7 +77,7 @@ pip install -r requirements.txt
 You must provide your Gemini API key for the application to function. Create a file named .env in the root directory and add the key in the following format:
 
 # .env file
-GOOGLE_API_KEY="YOUR_GEMINI_API_KEY_HERE"
+GOOGLE_API_KEY="AIzaSyBZWhw1E1fUMfinN8yIFFPCb6AL95B1vak"
 
 
 ▶️ Running the Application
